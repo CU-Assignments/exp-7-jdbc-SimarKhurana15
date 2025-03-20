@@ -1,0 +1,108 @@
+1. Student.java (Model)
+
+public class Student {
+    private int studentID;
+    private String name;
+    private String department;
+    private int marks;
+
+    public Student(int studentID, String name, String department, int marks) {
+        this.studentID = studentID;
+        this.name = name;
+        this.department = department;
+        this.marks = marks;
+    }
+
+    public int getStudentID() { return studentID; }
+    public String getName() { return name; }
+    public String getDepartment() { return department; }
+    public int getMarks() { return marks; }
+}
+
+2. StudentDAO.java (Database Operations)
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class StudentDAO {
+    static Connection getConnection() throws Exception {
+        return DriverManager.getConnection("jdbc:mysql://localhost:3306/mydatabase", "root", "password");
+    }
+
+    public static void addStudent(Student student) throws Exception {
+        Connection con = getConnection();
+        PreparedStatement ps = con.prepareStatement("INSERT INTO Student VALUES (?, ?, ?, ?)");
+        ps.setInt(1, student.getStudentID());
+        ps.setString(2, student.getName());
+        ps.setString(3, student.getDepartment());
+        ps.setInt(4, student.getMarks());
+        ps.executeUpdate();
+        ps.close();
+        con.close();
+    }
+
+    public static List<Student> getStudents() throws Exception {
+        List<Student> list = new ArrayList<>();
+        Connection con = getConnection();
+        Statement stmt = con.createStatement();
+        ResultSet rs = stmt.executeQuery("SELECT * FROM Student");
+        while (rs.next()) {
+            list.add(new Student(rs.getInt("StudentID"), rs.getString("Name"), rs.getString("Department"), rs.getInt("Marks")));
+        }
+        rs.close();
+        stmt.close();
+        con.close();
+        return list;
+    }
+
+    public static void updateStudentMarks(int id, int marks) throws Exception {
+        Connection con = getConnection();
+        PreparedStatement ps = con.prepareStatement("UPDATE Student SET Marks=? WHERE StudentID=?");
+        ps.setInt(1, marks);
+        ps.setInt(2, id);
+        ps.executeUpdate();
+        ps.close();
+        con.close();
+    }
+
+    public static void deleteStudent(int id) throws Exception {
+        Connection con = getConnection();
+        PreparedStatement ps = con.prepareStatement("DELETE FROM Student WHERE StudentID=?");
+        ps.setInt(1, id);
+        ps.executeUpdate();
+        ps.close();
+        con.close();
+    }
+}
+
+3. StudentController.java (Controller)
+
+import java.util.Scanner;
+
+public class StudentController {
+    public static void main(String[] args) throws Exception {
+        Scanner sc = new Scanner(System.in);
+        while (true) {
+            System.out.println("1. Add 2. View 3. Update 4. Delete 5. Exit");
+            int choice = sc.nextInt();
+            if (choice == 1) {
+                StudentDAO.addStudent(new Student(sc.nextInt(), sc.next(), sc.next(), sc.nextInt()));
+            } else if (choice == 2) {
+                for (Student s : StudentDAO.getStudents()) {
+                    System.out.println(s.getStudentID() + " " + s.getName() + " " + s.getDepartment() + " " + s.getMarks());
+                }
+            } else if (choice == 3) {
+                StudentDAO.updateStudentMarks(sc.nextInt(), sc.nextInt());
+            } else if (choice == 4) {
+                StudentDAO.deleteStudent(sc.nextInt());
+            } else {
+                break;
+            }
+        }
+        sc.close();
+    }
+}
+
+
+
