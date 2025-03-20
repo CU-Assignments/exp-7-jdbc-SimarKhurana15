@@ -1,0 +1,71 @@
+import java.sql.*;
+import java.util.Scanner;
+
+public class ProductCRUD {
+    static Connection getConnection() throws Exception {
+        return DriverManager.getConnection("jdbc:mysql://localhost:3306/mydatabase", "root", "password");
+    }
+
+    static void insertProduct(int id, String name, int price, int qty) throws Exception {
+        Connection con = getConnection();
+        PreparedStatement ps = con.prepareStatement("INSERT INTO Product VALUES (?, ?, ?, ?)");
+        ps.setInt(1, id);
+        ps.setString(2, name);
+        ps.setInt(3, price);
+        ps.setInt(4, qty);
+        ps.executeUpdate();
+        ps.close();
+        con.close();
+    }
+
+    static void fetchProducts() throws Exception {
+        Connection con = getConnection();
+        Statement stmt = con.createStatement();
+        ResultSet rs = stmt.executeQuery("SELECT * FROM Product");
+        while (rs.next()) {
+            System.out.println(rs.getInt("ProductID") + " " + rs.getString("ProductName") + " " + rs.getInt("Price") + " " + rs.getInt("Quantity"));
+        }
+        rs.close();
+        stmt.close();
+        con.close();
+    }
+
+    static void updateProduct(int id, int price) throws Exception {
+        Connection con = getConnection();
+        PreparedStatement ps = con.prepareStatement("UPDATE Product SET Price=? WHERE ProductID=?");
+        ps.setInt(1, price);
+        ps.setInt(2, id);
+        ps.executeUpdate();
+        ps.close();
+        con.close();
+    }
+
+    static void deleteProduct(int id) throws Exception {
+        Connection con = getConnection();
+        PreparedStatement ps = con.prepareStatement("DELETE FROM Product WHERE ProductID=?");
+        ps.setInt(1, id);
+        ps.executeUpdate();
+        ps.close();
+        con.close();
+    }
+
+    public static void main(String[] args) throws Exception {
+        Scanner sc = new Scanner(System.in);
+        while (true) {
+            System.out.println("1. Insert 2. Fetch 3. Update 4. Delete 5. Exit");
+            int choice = sc.nextInt();
+            if (choice == 1) {
+                insertProduct(sc.nextInt(), sc.next(), sc.nextInt(), sc.nextInt());
+            } else if (choice == 2) {
+                fetchProducts();
+            } else if (choice == 3) {
+                updateProduct(sc.nextInt(), sc.nextInt());
+            } else if (choice == 4) {
+                deleteProduct(sc.nextInt());
+            } else {
+                break;
+            }
+        }
+        sc.close();
+    }
+}
